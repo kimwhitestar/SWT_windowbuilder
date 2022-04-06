@@ -24,7 +24,7 @@ public class RecentPopularPromotionSubFileDownload extends JFrame {
    */
   @SuppressWarnings("rawtypes")
   private JList listFiles;
-  private String directoryImage = "I:/JavaGreen/Java/works/0329_mysqlConnect/images";
+  private String directoryImage = "I:/JavaGreen/Java/works/0329_mysqlConnect/src/WindowBuilder/images";
   private String pathSelectedImageFile = new String("");
   
   @SuppressWarnings("rawtypes")
@@ -70,7 +70,7 @@ public class RecentPopularPromotionSubFileDownload extends JFrame {
     listFiles.setFont(new Font("굴림", Font.PLAIN, 18));
     scrollPane.setViewportView(listFiles);
     
-    JLabel lblPathImage = new JLabel("DEFAULT FOLDER> I:/JavaGreen/Java/works/0329_mysqlConnect/images/");
+    JLabel lblPathImage = new JLabel("DEFAULT FOLDER> ... /WindowBuilder/images/");
     lblPathImage.setForeground(Color.GRAY);
     lblPathImage.setFont(new Font("굴림", Font.BOLD, 15));
     lblPathImage.setBounds(109, 102, 602, 38);
@@ -119,7 +119,7 @@ public class RecentPopularPromotionSubFileDownload extends JFrame {
    * @return String[] Image화일목록
    */
   private String[] getListFileName() {
-    //directory = "I:/JavaGreen/Java/works/0329_mysqlConnect/images"
+    //directory = "I:/JavaGreen/Java/works/0329_mysqlConnect/src/WindowBuilder/images"
     File dir = new File(this.directoryImage);
     File[] files = dir.listFiles();
     String fileName = null;

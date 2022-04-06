@@ -24,11 +24,6 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
-import java.awt.event.InputMethodListener;
-import java.awt.event.InputMethodEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
 
 @SuppressWarnings("serial")
 public class RecentPopularPromotionList extends JFrame {
@@ -40,12 +35,13 @@ public class RecentPopularPromotionList extends JFrame {
   private RecentPopularPromotionVO vo;
   @SuppressWarnings("rawtypes")
   private Vector title;//테이블 title
+  @SuppressWarnings("rawtypes")
   private Vector vData;//테이블 조회 data
   private List<RecentPopularPromotionVO> updateOrDeleteList;//테이블 update or delete data
   private InterestPartServiceImpl implInterest;
   @SuppressWarnings("rawtypes")
   private List listInterest;
-  private String[] arrInterest;
+  private String[][] arrInterest = {{},{}};;
   private JTextField txtFromDate;
   private JTextField txtToDate;
 
@@ -76,16 +72,20 @@ public class RecentPopularPromotionList extends JFrame {
     
     implInterest = new InterestPartServiceImpl();
     listInterest = implInterest.search();
-    arrInterest = new String[listInterest.size()+1];
-    arrInterest[0] = "-관심 분야-";
+
+    arrInterest[0] = new String[listInterest.size()+1];//관심분야코드
+    arrInterest[1] = new String[listInterest.size()+1];//관심분야이름
+    arrInterest[0][0] = "";
+    arrInterest[1][0] = "-관심 분야-";
     for (int i=1; i<=listInterest.size(); i++) {
       InterestPartVO vo = (InterestPartVO)listInterest.get(i-1);
-      arrInterest[i] = vo.getPartName();
+      arrInterest[0][i] = String.valueOf(vo.getPartCode());
+      arrInterest[1][i] = vo.getPartName();
     }
     
     cmbInterest = new JComboBox();
     cmbInterest.setBounds(105, 89, 218, 37);
-    cmbInterest.setModel(new DefaultComboBoxModel(arrInterest));
+    cmbInterest.setModel(new DefaultComboBoxModel(arrInterest[1]));
     cmbInterest.setBackground(Color.WHITE);
     cmbInterest.setFont(new Font("굴림", Font.PLAIN, 18));
     panel.add(cmbInterest);
@@ -201,6 +201,14 @@ public class RecentPopularPromotionList extends JFrame {
 
         //데이타 Vector타입
         vData = implPromotion.searchList(vo);
+        for (int i=0; i<vData.size(); i++) {
+          for (int j=1; j<arrInterest[0].length; j++) {
+            //조회된 데이타에서 관심분야를 코드에서 이름으로 변경
+            if (arrInterest[0][j].equals(String.valueOf(((Vector)vData.get(i)).get(0)))) {//관심분야코드
+              ((Vector)vData.get(i)).set(0, arrInterest[1][j]);//관심분야이름
+            }
+          }
+        }
         
         //DefaultTableModel에 검색된 Vector List 올림
         DefaultTableModel defaultTableModel = new DefaultTableModel(vData, title);
@@ -244,16 +252,17 @@ System.out.println("##### mouseEntered");
     // 수정버튼 클릭 이벤트
     btnUpdate.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-System.out.println("수정이벤트");        
-        int result = 0;
-        for (int i=0; i<updateOrDeleteList.size(); i++) {
-          result += implPromotion.update((RecentPopularPromotionVO)updateOrDeleteList.get(i));//update
-        }
-        if (0 < result) {
-          //수정메세지
-          JOptionPane.showMessageDialog(null, result + "건 수정됬습니다");
-          lblMsgBox.setText(result + "건 수정됬습니다");
-        }
+System.out.println("[수정이벤트] 여러건 선택해서 수정하고 싶으나 테이블에 체크박스 추가하는게 어려워 수정이벤트는 작성하지않았음");  
+//여러건 선택해서 수정하고 싶으나 테이블에 체크박스 추가하는게 어려워 수정이벤트는 작성하지않았음
+//        int result = 0;
+//        for (int i=0; i<updateOrDeleteList.size(); i++) {
+//          result += implPromotion.update((RecentPopularPromotionVO)updateOrDeleteList.get(i));//update
+//        }
+//        if (0 < result) {
+//          //수정메세지
+//          JOptionPane.showMessageDialog(null, result + "건 수정됬습니다");
+//          lblMsgBox.setText(result + "건 수정됬습니다");
+//        }
       }
     });
     
@@ -268,6 +277,33 @@ System.out.println("수정이벤트");
         }
 //        if (0 < result) //삭제메세지
 */
+        String strCreateDate = (String)((Vector)vData.get(tblPromotion.getSelectedRow())).get(3);
+        RecentPopularPromotionVO deleteVO = new RecentPopularPromotionVO();//update vo
+        deleteVO.setCreateDate(strCreateDate);//update vo 조건 : 작성일
+        int result = implPromotion.delete(deleteVO);//update
+        if (0 < result) {
+          //삭제메세지
+          JOptionPane.showMessageDialog(null, result + "건 삭제됬습니다");
+          lblMsgBox.setText(result + "건 삭제됬습니다");
+          
+          //삭제 후 재조회
+          vData = implPromotion.searchList(vo);//데이타 Vector타입
+          for (int i=0; i<vData.size(); i++) {
+            for (int j=1; j<arrInterest[0].length; j++) {
+              //조회된 데이타에서 관심분야를 코드에서 이름으로 변경
+              if (arrInterest[0][j].equals(String.valueOf(((Vector)vData.get(i)).get(0)))) {//관심분야코드
+                ((Vector)vData.get(i)).set(0, arrInterest[1][j]);//관심분야이름
+              }
+            }
+          }
+          //DefaultTableModel에 검색된 Vector List 올림
+          DefaultTableModel defaultTableModel = new DefaultTableModel(vData, title);
+          //JTable에 DefaultTableModel 올림
+          tblPromotion = new JTable(defaultTableModel);
+          tblPromotion.setFont(new Font("굴림", Font.PLAIN, 18));
+          tblPromotion.setColumnSelectionAllowed(true);
+          scrollPane.setViewportView(tblPromotion);
+        }
       }
     });
     

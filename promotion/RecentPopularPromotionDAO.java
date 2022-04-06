@@ -101,9 +101,9 @@ public class RecentPopularPromotionDAO {
     }
     return vo;
   }
-  public int insert(RecentPopularPromotionVO vo) {
+  public int insert(RecentPopularPromotionVO vo) throws SQLException {
     int result = 0;
-    try {
+//    try {
       sql = "INSERT INTO RECENT_POPULAR_PROMOTION"
           + " VALUES (default, ?, ?, ?, ?, ?, null)";
       pstmt = conn.prepareStatement(sql);
@@ -114,13 +114,13 @@ public class RecentPopularPromotionDAO {
       pstmt.setBytes(5, vo.getPicture());
       //pstmt.setBytes(6, vo.getPictureOrg());
       result = pstmt.executeUpdate();
-      if (0 < result) System.out.println("관심분야 입력 성공");
-      else System.out.println("관심분야 입력 실패");
-    } catch (SQLException e) {
-      System.out.println("SQL 에러 : " + e.getMessage());
-    } finally {
+      if (0 < result) System.out.println("최신소식홍보물 등록 성공");
+      else System.out.println("최신소식홍보물 등록 실패");
+//    } catch (SQLException e) {
+//      System.out.println("SQL 에러 : " + e.getMessage());
+//    } finally {
       pstmtClose();
-    }
+//    }
     return result;  
   }
   
@@ -141,8 +141,8 @@ public class RecentPopularPromotionDAO {
       if (null != vo.getOrigin()) pstmt.setString(2, vo.getOrigin());
       pstmt.setString(3, vo.getCreateDate());
       result = pstmt.executeUpdate();
-      if (0 < result) System.out.println("관심분야 수정 성공");
-      else System.out.println("관심분야 수정 실패");
+      if (0 < result) System.out.println("최신소식홍보물 수정 성공");
+      else System.out.println("최신소식홍보물 수정 실패");
     } catch (SQLException e) {
       System.out.println("SQL 에러 : " + e.getMessage());
     } finally {
@@ -158,8 +158,8 @@ public class RecentPopularPromotionDAO {
       pstmt = conn.prepareStatement(sql);
       pstmt.setString(1, vo.getCreateDate());
       result = pstmt.executeUpdate();
-      if (0 < result) System.out.println("관심분야 삭제 성공");
-      else System.out.println("관심분야 삭제 실패");
+      if (0 < result) System.out.println("최신소식홍보물 삭제 성공");
+      else System.out.println("최신소식홍보물 삭제 실패");
     } catch (SQLException e) {
       System.out.println("SQL 에러 : " + e.getMessage());
     } finally {

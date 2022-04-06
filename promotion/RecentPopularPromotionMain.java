@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.net.URL;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -54,7 +53,7 @@ public class RecentPopularPromotionMain extends JFrame {
     JLabel lblImage = new JLabel("");
     lblImage.setBounds(228, 186, 566, 228);
 //    URL imgUrl = this.getClass().getClassLoader().getResource("nimo.jpg");
-    lblImage.setIcon(new ImageIcon("I:/JavaGreen/Java/works/0329_mysqlConnect/images/nimoZ.jpg"));
+    lblImage.setIcon(new ImageIcon("I:/JavaGreen/Java/works/0329_mysqlConnect/src/WindowBuilder/images/nimoZ.jpg"));
     //ImageIcon("I:/JavaGreen/Java/works/0329_mysqlConnect/images/nimo.jpg")
     panel.add(lblImage);
 

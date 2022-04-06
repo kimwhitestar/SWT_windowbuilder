@@ -14,9 +14,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Base64;
-import java.util.Base64.Decoder;
-import java.util.Base64.Encoder;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
@@ -44,7 +45,7 @@ public class RecentPopularPromotionSubInput extends JFrame {
   private List listInterest;
   private InterestPartVO voInterest;
   private String[] arrInterest;
-  private String directoryImage = "I:/JavaGreen/Java/works/0329_mysqlConnect/images";
+  private String directoryImage = "I:/JavaGreen/Java/works/0329_mysqlConnect/src/WindowBuilder/images";
   
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public RecentPopularPromotionSubInput() {
@@ -207,7 +208,7 @@ public class RecentPopularPromotionSubInput extends JFrame {
       @Override
       public void focusLost(FocusEvent e) {
         if (0 == txtAddImg.getText().trim().length()) txtAddImg.setText("사진을 입력하세요");
-        else voPromotion.setPicture(transByteCodeForPicture(txtAddImg.getText()));
+        //else voPromotion.setPicture(transByteCodeForPicture(txtAddImg.getText()));
       }
     });
     
@@ -216,11 +217,12 @@ public class RecentPopularPromotionSubInput extends JFrame {
       public void actionPerformed(ActionEvent e) {
         new RecentPopularPromotionSubFileDownload();
         
-        byte[] bytesPicture = transByteCodeForPicture("I:/JavaGreen/Java/works/0329_mysqlConnect/images/테스트그림글자.gif");
-        String strPicture = extractString(decodingBase64(bytesPicture));
-        txtAddImg.setText("I:/JavaGreen/Java/works/0329_mysqlConnect/images/테스트그림글자.gif");
-        voPromotion.setPicture(bytesPicture);//ASCII DATA
-        voPromotion.setContent(strPicture);
+//인코딩:binary->ascii변환 byte[] bytesPicture = transByteCodeForPicture("I:/JavaGreen/Java/works/0329_mysqlConnect/images/englishAndImage.jpg");
+//String strPicture = extractString(decodingBase64(bytesPicture));
+        txtAddImg.setText("I:/JavaGreen/Java/works/0329_mysqlConnect/src/WindowBuilder/images/englishAndImage.jpg");
+        byte[][] bytesContent = extractBytes(txtAddImg.getText());
+        voPromotion.setPicture(bytesContent[1]);//화일전체(사진,문자)
+        voPromotion.setContent(extractString(bytesContent[0]));//사진에서 영문자만 String으로 추출
       }
     });
     // 저장버튼 클릭 이벤트
@@ -231,7 +233,18 @@ public class RecentPopularPromotionSubInput extends JFrame {
         else if (null == voPromotion.getOrigin()) lblMsgBox.setText("출처는 필수 입력항목입니다");
         else if (null == voPromotion.getPicture()) lblMsgBox.setText("사진은 필수 입력항목입니다");
         else {
-          int result = implPromotion.insert(voPromotion);
+          int result = 0;
+          try {
+            result = implPromotion.insert(voPromotion);
+          } catch(SQLException e2) {
+            System.out.println("SQL 에러 : " + e2.getMessage());
+            try {
+              voPromotion.setContent("사진을 바이너리로 변환 후 문자추출했으나 에러가 났음. input sql 저장 확인을 위해 임의의 값으로 내용설정 후 테스트했음");
+              result = implPromotion.insert(voPromotion);
+            } catch(SQLException e3) {
+              System.out.println("SQL 에러 : " + e3.getMessage());
+            }
+          }
           if (0 < result) lblMsgBox.setText("홍보물이 등록되었습니다"); 
           else lblMsgBox.setText("홍보물을 등록할 수 없습니다"); 
         }
@@ -256,46 +269,99 @@ public class RecentPopularPromotionSubInput extends JFrame {
   
   //첨부된 사진을 byte[]로 변경
   /* 참고 웹사이트 : https://lee1535.tistory.com/43 */
-  private byte[] transByteCodeForPicture(String path) {
-    return encodingBase64(extractBytes(path));
-  }
+//  private byte[] transByteCodeForPicture(String path) {
+//    return encodingBase64(extractBytes(path));
+//  }
   /* 참고 웹사이트 : https://lee1535.tistory.com/43 */
   @SuppressWarnings("resource")
-  private byte[] extractBytes(String imageName) {
+  private byte[][] extractBytes(String imageName) {
+    /*### byte 문자열 비교 테스트*/
+    byte test1 = 'F';
+    char test2 = 'F';
+    if (test1 == test2) System.out.println("byte 'F'와 char 'F'는 같다");
+    /* byte 문자열 비교 테스트###*/
+    
+    byte[] binaryForEnglish = {'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
+    byte[] binaryForNumber = {1,2,3,4,5,6,7,8,9,0};
+    byte[] binaryForMark = {'~','!','@','#','$','%','^','&','*','(',')','-','+','_','=','`','"',';',':','{','}','[',']','?','/','.',',','<','>','|'};
+    byte[][] binaries = {binaryForEnglish, binaryForNumber, binaryForMark};
+    byte[] outputEnglish = null;
+    byte[] outputPicture = null;
+    byte[][] outputBytes = { outputEnglish, outputPicture };
+    
     try {
       File imgPath = new File(imageName);
       FileInputStream input = null;
-      ByteArrayOutputStream output = new ByteArrayOutputStream();
+      ByteArrayOutputStream output = null;
       
+      /*화일의 사진과 글자를 모두 binary로 변환*/
       input = new FileInputStream(imgPath);
-      int len = 0;
-      byte[] buf = new byte[1024];//사진에서 추출한 문자만 1024문자
-      
+      output = new ByteArrayOutputStream();
+      int len = 0, idx = 0;
+      byte[] buf = new byte[1024];//사진에서 추출할 문자만 1024문자
       while ((len = input.read(buf)) != -1) {//한번에 배열길이 1024만큼씩의 문자를 읽음, 읽을 문자가 없으면 -1
-        output.write(buf, 0, len);
+        output.write(buf, 0, len);//화일의 사진과 글자를 Binary로 작성
       }
+      outputPicture = output.toByteArray();
+      outputBytes[1] = outputPicture;//화일 전체(사진,글자) binary
+      input.close();
+      output.close();
       
-      return output.toByteArray();
-      
+      /*영문글자 추출*/
+      input = new FileInputStream(imgPath);
+      output = new ByteArrayOutputStream();
+      len = 0; idx = 0;
+      buf = new byte[1024];//사진에서 추출할 문자만 1024문자
+      while ((len = input.read(buf)) != -1) {//한번에 배열길이 1024만큼씩의 문자를 읽음, 읽을 문자가 없으면 -1
+        for (int i=0; i<binaries.length; i++) {
+          for (int j=0; j<binaries[i].length; j++) {
+            if (buf[idx] == binaries[i][j]) {
+              output.write(buf, 0, len);
+            }
+          }
+        }
+        idx++;
+      }
+      outputEnglish = output.toByteArray();
+      outputBytes[0] = outputEnglish;//영문자 Binary
+      input.close();
+      output.close();
     } catch (IOException e) {
       e.printStackTrace();
     }
-    
-    return null;
+    return outputBytes;
   }
   //binary data -> ascii data로 인코딩
   //ascii변환없이 binary만으로도 사용가능하지만, 보안상이나 ajax에서 쓰기도 한다고 함
   /* 참고 웹사이트 : https://lee1535.tistory.com/43 */
-  private byte[] encodingBase64(byte[] targetBytes) {
-    Encoder encoder = Base64.getEncoder();
-    return encoder.encode(targetBytes);
+//  private byte[] encodingBase64(byte[] targetBytes) {
+//    Encoder encoder = Base64.getEncoder();
+//    return encoder.encode(targetBytes);
+//  }
+  @SuppressWarnings("resource")
+  private String extractString(byte[] englishBites) {
+    StringBuffer strBuff = new StringBuffer("");
+    try {
+      InputStream inputStream = new ByteArrayInputStream(englishBites);//byte[] outputEnglish
+      Reader reader = new InputStreamReader(inputStream);//문자변환보조스트림
+      int len = 0, idx = 0;
+      char[] cbuf = new char[1024];
+      while ((len = reader.read(cbuf)) != -1) {
+        strBuff.append(new String(cbuf, 0, len));
+      }
+System.out.println("new String(cbuf, 0, len); = "+ strBuff.toString());
+      inputStream.close();
+      reader.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return strBuff.toString();
   }
   @SuppressWarnings("resource")
-  private String extractString(byte[] targetBytes) {
+  private void extractFile(byte[] targetBytes) {
     try {
-      String strOutput = new String();
       ByteArrayInputStream input = null;
-      FileOutputStream output = new FileOutputStream("I:/JavaGreen/Java/works/0329_mysqlConnect/images/output.txt");
+      FileOutputStream output = new FileOutputStream("I:/JavaGreen/Java/works/0329_mysqlConnect/src/WindowBuilder/images/output.txt");
       
       input = new ByteArrayInputStream(targetBytes, 0, targetBytes.length);
       int len = 0;
@@ -304,18 +370,16 @@ public class RecentPopularPromotionSubInput extends JFrame {
       while ((len = input.read(buf)) != -1) {//Binary data 읽기
         output.write(buf, 0, len);//output.txt화일에 쓰기
       }
-      return strOutput;
       
     } catch (IOException e) {
       e.printStackTrace();
     }
-    return null;
   }
   //ascii data -> binary data로 디코딩
-  private byte[] decodingBase64(byte[] targetBytes) {
-    Decoder decoder = Base64.getDecoder();
-    return decoder.decode(targetBytes);
-  }
+//  private byte[] decodingBase64(byte[] targetBytes) {
+//    Decoder decoder = Base64.getDecoder();
+//    return decoder.decode(targetBytes);
+//  }
   
   public static void main(String[] args) {
     new RecentPopularPromotionSubInput();

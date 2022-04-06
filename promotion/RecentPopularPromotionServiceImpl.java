@@ -1,5 +1,6 @@
 package WindowBuilder.promotion;
 
+import java.sql.SQLException;
 import java.util.Vector;
 
 public class RecentPopularPromotionServiceImpl implements RecentPopularPromotionService {
@@ -17,7 +18,7 @@ public class RecentPopularPromotionServiceImpl implements RecentPopularPromotion
   }
 
   @Override
-  public int insert(RecentPopularPromotionVO vo) {
+  public int insert(RecentPopularPromotionVO vo) throws SQLException {
     return dao.insert(vo);
   }
 

@@ -5,7 +5,7 @@ import java.util.List;
 public class InterestPartServiceImpl implements InterestPartService {
   private InterestPartDAO dao = new InterestPartDAO();
   public static List<InterestPartVO> listVO;
-  @SuppressWarnings("rawtypes")
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   @Override
   public List search() {
     listVO = dao.search();
