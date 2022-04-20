@@ -4,12 +4,13 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.List;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -20,31 +21,37 @@ import javax.swing.SwingConstants;
 
 @SuppressWarnings("serial")
 public class RecentPopularPromotionSubSearch extends JFrame {
-  private JTextField txtInterest;
+  @SuppressWarnings("rawtypes")
+  private JComboBox cmbInterest;
+  @SuppressWarnings("rawtypes")
+  private DefaultComboBoxModel defaultCombo;
+  private List<InterestPartVO> listInterest;
+  private String[][] arrInterest = {{},{}};;
   private JTextField txtSubject;
   private JTextField txtOrigin;
   private JTextArea txtAreaContent; 
   private JLabel lblMsgBox;
   private RecentPopularPromotionServiceImpl implPromotion;
-  private RecentPopularPromotionVO searchVO;
   private RecentPopularPromotionVO voPromotion;
   
   public RecentPopularPromotionSubSearch(RecentPopularPromotionVO searchVO) {
     this();
     implPromotion = new RecentPopularPromotionServiceImpl();
-    voPromotion = new RecentPopularPromotionVO();
-    voPromotion = implPromotion.search(this.searchVO);
-//    lblImg = voPromotion.getPicture();
+    voPromotion = implPromotion.search(searchVO);
+    //lblImg = voPromotion.getPicture();//db에서 가져온 사진(byte코드)을 outputstream으로 읽은 후, 화면 label 사진영역에 표시-미작성
     int partCode = voPromotion.getPartCode();
-    for (int i=0; i<InterestPartServiceImpl.listVO.size(); i++) {
-      if (searchVO.getPartCode() == InterestPartServiceImpl.listVO.get(i).getPartCode())
-        txtInterest.setText(InterestPartServiceImpl.listVO.get(i).getPartName());
+//System.out.println("InterestPartServiceImpl.listVO.size() = "+InterestPartServiceImpl.listVO.size());   
+//System.out.println("defaultCombo.getSize() = "+ defaultCombo.getSize());
+    for (int i=0; i<defaultCombo.getSize(); i++) {
+      if (partCode == Integer.parseInt(arrInterest[0][i])) 
+        cmbInterest.setSelectedIndex(i);
     }
     txtSubject.setText(voPromotion.getSubject());
     txtOrigin.setText(voPromotion.getOrigin());
     txtAreaContent.setText(voPromotion.getContent());
   }
   
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public RecentPopularPromotionSubSearch() {
     super("SWT 최신 소식 홍보물 상세조회 - Sub");
     setSize(1024, 768);
@@ -65,11 +72,6 @@ public class RecentPopularPromotionSubSearch extends JFrame {
     panel.add(lblTitle);
 
     JLabel lblImg = new JLabel("");
-    /*
-    URL imgUrl = this.getClass().getClassLoader().getResource("nimoZ.jpg");
-    lblImg.setIcon(new ImageIcon(imgUrl));
-    */
-    //ImageIcon("D:\\JavaGreen\\html5_css3_javascript\\images\\2.jpg")
     lblImg.setBounds(38, 42, 930, 260);
     panel.add(lblImg);
     
@@ -93,33 +95,41 @@ public class RecentPopularPromotionSubSearch extends JFrame {
     lblContent.setBounds(38, 394, 88, 25);
     panel.add(lblContent);
     
-    txtInterest = new JTextField();
-    txtInterest.setEditable(false);
-    txtInterest.setEnabled(false);
-    txtInterest.setBounds(105, 312, 862, 25);
-    txtInterest.setFont(new Font("굴림", Font.PLAIN, 15));
-    panel.add(txtInterest);
+    listInterest = InterestPartServiceImpl.listVO;
+    arrInterest[0] = new String[listInterest.size()];//관심분야코드
+    arrInterest[1] = new String[listInterest.size()];//관심분야이름
+    for (int i=0; i<listInterest.size(); i++) {
+      InterestPartVO vo = (InterestPartVO)listInterest.get(i);
+      arrInterest[0][i] = String.valueOf(vo.getPartCode());
+      arrInterest[1][i] = vo.getPartName();
+    }
+    defaultCombo = new DefaultComboBoxModel(arrInterest[1]);
+    cmbInterest = new JComboBox();
+    cmbInterest.setBounds(105, 305, 218, 30);
+    cmbInterest.setBackground(Color.WHITE);
+    cmbInterest.setFont(new Font("굴림", Font.PLAIN, 18));
+    cmbInterest.setModel(defaultCombo);
+    panel.add(cmbInterest);
+
     
     txtSubject = new JTextField();
     txtSubject.setBounds(105, 339, 862, 25);
     txtSubject.setFont(new Font("굴림", Font.PLAIN, 15));
     panel.add(txtSubject);
-    txtSubject.setColumns(10);
     
     txtOrigin = new JTextField();
     txtOrigin.setBounds(105, 367, 862, 25);
     txtOrigin.setFont(new Font("굴림", Font.PLAIN, 15));
-    txtOrigin.setColumns(10);
     panel.add(txtOrigin);
-    
-    JScrollPane scrollPane = new JScrollPane();
-    scrollPane.setBounds(105, 396, 862, 218);
-    panel.add(scrollPane);
     
     txtAreaContent = new JTextArea();
     txtAreaContent.setEditable(false);
     txtAreaContent.setEnabled(false);
-    scrollPane.setViewportView(txtAreaContent);
+
+    //JScrollPane에 JTextArea 올림
+    JScrollPane scrollPane = new JScrollPane(txtAreaContent);
+    scrollPane.setBounds(105, 396, 862, 218);
+    panel.add(scrollPane);
     
     lblMsgBox = new JLabel("");
     lblMsgBox.setForeground(Color.RED);
@@ -127,58 +137,61 @@ public class RecentPopularPromotionSubSearch extends JFrame {
     lblMsgBox.setBounds(38, 643, 938, 25);
     panel.add(lblMsgBox);
     
-    JButton btnUpdate = new JButton("수정");
-    btnUpdate.setFont(new Font("굴림", Font.PLAIN, 16));
-    btnUpdate.setBounds(282, 678, 120, 30);
-    panel.add(btnUpdate);
-    
     JButton btnSave = new JButton("저장");
     btnSave.setFont(new Font("굴림", Font.PLAIN, 16));
-    btnSave.setBounds(440, 678, 120, 30);
+    btnSave.setBounds(303, 678, 120, 30);
     panel.add(btnSave);
+    
+    JButton btnDelete = new JButton("삭제");
+    btnDelete.setFont(new Font("굴림", Font.PLAIN, 16));
+    btnDelete.setBounds(452, 678, 120, 30);
+    panel.add(btnDelete);
     
     JButton btnExit = new JButton("닫기");
     btnExit.setFont(new Font("굴림", Font.PLAIN, 16));
-    btnExit.setBounds(600, 678, 120, 30);
+    btnExit.setBounds(599, 678, 120, 30);
     panel.add(btnExit);
     
     setVisible(true);
 
-    
-    txtSubject.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusGained(FocusEvent e) {
-        txtSubject.setText("");
-      }
-      @Override
-      public void focusLost(FocusEvent e) {
-        if (0 == txtSubject.getText().trim().length()) txtSubject.setText("제목을 입력하세요");
-        else voPromotion.setSubject(txtSubject.getText());
-      }
-    });
-    txtOrigin.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusGained(FocusEvent e) {
-        txtOrigin.setText("");
-      }
-      @Override
-      public void focusLost(FocusEvent e) {
-        if (0 == txtOrigin.getText().trim().length()) txtOrigin.setText("출처를 입력하세요");
-        else voPromotion.setOrigin(txtOrigin.getText());
-      }
-    });
-    // 저장버튼 클릭 이벤트
+    // 저장버튼 클릭이벤트
     btnSave.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        if (null == voPromotion.getSubject()) lblMsgBox.setText("제목은 필수 입력항목입니다");
-        else if (null == voPromotion.getOrigin()) lblMsgBox.setText("출처는 필수 입력항목입니다");
-        else {
-          int result = implPromotion.update(voPromotion);
-          if (0 < result) lblMsgBox.setText("홍보물이 수정되었습니다"); 
-          else lblMsgBox.setText("홍보물을 수정할 수 없습니다"); 
+        int partCode = ((InterestPartVO)listInterest.get(cmbInterest.getSelectedIndex())).getPartCode();
+        if (voPromotion.getPartCode() != partCode) 
+          voPromotion.setPartCode(partCode);//관심분야 콤보선택
+        
+        if (null == voPromotion.getSubject() 
+            || 0 == txtSubject.getText().trim().length()) {
+          lblMsgBox.setText("제목을 입력하세요");
+        } else {
+          if (! voPromotion.getSubject().equals(txtSubject.getText())) voPromotion.setSubject(txtSubject.getText());
+        }
+        
+        if (null == voPromotion.getOrigin()
+            || 0 == txtOrigin.getText().trim().length()) {
+          lblMsgBox.setText("출처를 입력하세요");
+        } else {
+          if (! voPromotion.getOrigin().equals(txtOrigin.getText())) voPromotion.setOrigin(txtOrigin.getText());
+        }
+        
+        int result = implPromotion.update(voPromotion);
+        if (0 < result) lblMsgBox.setText("홍보물을 수정했습니다"); 
+        else lblMsgBox.setText("홍보물을 수정할 수 없습니다"); 
+      }
+    });
+    
+    //삭제버튼 클릭이벤트
+    btnDelete.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        int result = implPromotion.delete(voPromotion);//delete
+        if (0 < result) {
+          //삭제메세지
+          lblMsgBox.setText("홍보물을 삭제했습니다");
         }
       }
     });
+
     // X버튼 클릭
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     // 종료버튼 클릭
@@ -196,16 +209,10 @@ public class RecentPopularPromotionSubSearch extends JFrame {
     });    
   }
   
-  /**
-   * 첨부된 사진을 byte[]로 변경
-   */
-  private byte[] transByteCodeForPicture(String path) {
-    return null;
-  }
-  
-  public static void main(String[] args) {
-    RecentPopularPromotionVO vo = new RecentPopularPromotionVO();
-    vo.setCreateDate("2022-04-04 13:12:15");
-    new RecentPopularPromotionSubSearch(vo);
-  }
+//  /**
+//   * 첨부된 사진을 byte[]로 변경
+//   */
+//  private byte[] transByteCodeForPicture(String path) {
+//    return null;
+//  }
 }

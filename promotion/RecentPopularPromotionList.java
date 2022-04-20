@@ -29,6 +29,9 @@ import javax.swing.table.DefaultTableModel;
 public class RecentPopularPromotionList extends JFrame {
   @SuppressWarnings("rawtypes")
   private JComboBox cmbInterest;
+  private InterestPartServiceImpl implInterest;
+  private List<InterestPartVO> listInterest;
+  private String[][] arrInterest = {{},{}};;
   private JTextField txtSubjectOROrigin;
   private JTable tblPromotion;
   private RecentPopularPromotionServiceImpl implPromotion;
@@ -38,10 +41,6 @@ public class RecentPopularPromotionList extends JFrame {
   @SuppressWarnings("rawtypes")
   private Vector vData;//테이블 조회 data
   private List<RecentPopularPromotionVO> updateOrDeleteList;//테이블 update or delete data
-  private InterestPartServiceImpl implInterest;
-  @SuppressWarnings("rawtypes")
-  private List listInterest;
-  private String[][] arrInterest = {{},{}};;
   private JTextField txtFromDate;
   private JTextField txtToDate;
 
@@ -147,10 +146,6 @@ public class RecentPopularPromotionList extends JFrame {
     btnExit.setBounds(917, 143, 80, 38);
     panel.add(btnExit);
     
-    JScrollPane scrollPane = new JScrollPane();
-    scrollPane.setBounds(12, 228, 985, 500);
-    panel.add(scrollPane);
-
     //Empty Table 
     //타이틀 Vector타입 
     title = new Vector();
@@ -166,14 +161,17 @@ public class RecentPopularPromotionList extends JFrame {
     tblPromotion.setCellSelectionEnabled(true);
     tblPromotion.setColumnSelectionAllowed(true);
     tblPromotion.setFont(new Font("굴림", Font.PLAIN, 18));
-    scrollPane.setViewportView(tblPromotion);
     
+    //JScrollPane에 JTable 올림
+    JScrollPane scrollPane = new JScrollPane(tblPromotion);
+    scrollPane.setBounds(12, 228, 985, 500);
+    panel.add(scrollPane);
+
     JLabel lblMsgBox = new JLabel("조회 조건을 입력하세요");
     lblMsgBox.setForeground(Color.RED);
     lblMsgBox.setFont(new Font("굴림", Font.ITALIC, 18));
     lblMsgBox.setBounds(22, 189, 980, 38);
     panel.add(lblMsgBox);
-//  scrollPane.setViewportView(table);
     
     setVisible(true);
     
@@ -209,15 +207,9 @@ public class RecentPopularPromotionList extends JFrame {
             }
           }
         }
-        
         //DefaultTableModel에 검색된 Vector List 올림
-        DefaultTableModel defaultTableModel = new DefaultTableModel(vData, title);
-        //JTable에 DefaultTableModel 올림
-        tblPromotion = new JTable(defaultTableModel);
-        tblPromotion.setFont(new Font("굴림", Font.PLAIN, 18));
-        tblPromotion.setColumnSelectionAllowed(true);
-        scrollPane.setViewportView(tblPromotion);
-        
+        defaultTableModel.setDataVector(vData, title);
+
         JOptionPane.showMessageDialog(null, vData.size() + "건 조회됬습니다");
         lblMsgBox.setText(vData.size() + "건 조회됬습니다");
 
@@ -225,27 +217,39 @@ public class RecentPopularPromotionList extends JFrame {
         //tblPromotion.setColumnModel(DefaultTableColumnModel);;
       }
     });
-    //######## 테이블에 마우스이벤트가 적용안되요ㅜㅜ
+//    //######## 테이블에 마우스이벤트가 적용안되요ㅜㅜ
+//    //테이블 컬럼 마우스 클릭 이벤트
+//    tblPromotion.addMouseListener(new MouseAdapter() {
+//      @Override
+//      public void mouseClicked(MouseEvent e) {
+//System.out.println("##### mouseClicked");  
+///* 테이블에서 여러 rows를 선택후 update
+//        //마우스클릭 table의 4번째 column 작성일 CREATE_DATE의 값
+//        String strCreateDate = defaultTableModel.getValueAt(tblPromotion.getSelectedRow(), 3).toString();
+//        String strSubject = defaultTableModel.getValueAt(tblPromotion.getSelectedRow(), 1).toString();
+//        String strOrigin = defaultTableModel.getValueAt(tblPromotion.getSelectedRow(), 2).toString();
+//        RecentPopularPromotionVO updateVO = new RecentPopularPromotionVO();//update vo
+//        updateVO.setCreateDate(strCreateDate);//update vo 조건
+//        updateVO.setSubject(strSubject);//update vo 항목 
+//        updateVO.setOrigin(strOrigin);//update vo 항목
+//        updateOrDeleteList.add(updateVO);//update list
+//        
+//        //tblContent.getColumnModel().getColumn(3).setMaxWidth(60);
+//*/
+//      }
+//    });
+    
     //테이블 컬럼 마우스 클릭 이벤트
     tblPromotion.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-System.out.println("##### mouseEntered");  
-        //마우스클릭 table의 4번째 column 작성일 CREATE_DATE의 값
-        String strCreateDate = defaultTableModel.getValueAt(tblPromotion.getSelectedRow(), 3).toString();
-        String strSubject = defaultTableModel.getValueAt(tblPromotion.getSelectedRow(), 1).toString();
-        String strOrigin = defaultTableModel.getValueAt(tblPromotion.getSelectedRow(), 2).toString();
+        //마우스클릭table row 의 CreateDate값
+        String strCreateDate = (String)((Vector)vData.get(tblPromotion.getSelectedRow())).get(3);
+//System.out.println("수정할 row의 CreateDate=" + strCreateDate);
         RecentPopularPromotionVO updateVO = new RecentPopularPromotionVO();//update vo
-        updateVO.setCreateDate(strCreateDate);//update vo 조건
-        updateVO.setSubject(strSubject);//update vo 항목 
-        updateVO.setOrigin(strOrigin);//update vo 항목
-        updateOrDeleteList.add(updateVO);//update list
-        
-        //tblContent.getColumnModel().getColumn(3).setMaxWidth(60);
-      }
-      @Override
-      public void mouseEntered(MouseEvent e) {
-System.out.println("##### mouseEntered");  
+        updateVO.setCreateDate(strCreateDate);//update vo 조건 : 작성일
+        //테이블에서 선택한 row에 해당하는 data를 상세화면윈도우창을 띄워 상세조회 후 상세내용표시
+        new RecentPopularPromotionSubSearch(updateVO);
       }
     });
 
@@ -297,12 +301,7 @@ System.out.println("[수정이벤트] 여러건 선택해서 수정하고 싶으
             }
           }
           //DefaultTableModel에 검색된 Vector List 올림
-          DefaultTableModel defaultTableModel = new DefaultTableModel(vData, title);
-          //JTable에 DefaultTableModel 올림
-          tblPromotion = new JTable(defaultTableModel);
-          tblPromotion.setFont(new Font("굴림", Font.PLAIN, 18));
-          tblPromotion.setColumnSelectionAllowed(true);
-          scrollPane.setViewportView(tblPromotion);
+          defaultTableModel.setDataVector(vData, title);
         }
       }
     });

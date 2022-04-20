@@ -29,7 +29,7 @@ public class InterestPartDAO {
     }
   }
   @SuppressWarnings("rawtypes")
-  public List search() {
+  public List<InterestPartVO> search() {
     List<InterestPartVO> listVO = new ArrayList<>();
     try {
       sql = "SELECT PART_CODE, PART_NAME FROM INTEREST_PART";

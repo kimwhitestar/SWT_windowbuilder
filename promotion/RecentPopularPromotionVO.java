@@ -1,7 +1,5 @@
 package WindowBuilder.promotion;
 
-import java.util.List;
-
 public class RecentPopularPromotionVO {
   /** 생성일 */
   private String createDate = null;//yyyyMMddhhmms 13자리
@@ -9,8 +7,8 @@ public class RecentPopularPromotionVO {
   private String createDateFrom = null;//yyyyMMddhhmms 13자리
   /** 생성일 To */
   private String createDateTo = null;//yyyyMMddhhmms 13자리
-  /** 관심분야VO */
-  private List<InterestPartVO> partVO = null;
+//  /** 관심분야VO */
+//  private List<InterestPartVO> partVO = null;
   /** 관심분야 코드 */
   private int partCode;
   /** 관심분야 이름 */
@@ -44,12 +42,12 @@ public class RecentPopularPromotionVO {
   public void setCreateDateTo(String createDateTo) {
     this.createDateTo = createDateTo;
   }
-  public List<InterestPartVO> getPartVO() {
-    return partVO;
-  }
-  public void setPartVO(List<InterestPartVO> partVO) {
-    this.partVO = partVO;
-  }
+//  public List<InterestPartVO> getPartVO() {
+//    return partVO;
+//  }
+//  public void setPartVO(List<InterestPartVO> partVO) {
+//    this.partVO = partVO;
+//  }
   public int getPartCode() {
     return partCode;
   }

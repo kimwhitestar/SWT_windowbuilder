@@ -52,8 +52,8 @@ public class RecentPopularPromotionDAO {
       if (null != searchVO.getSubject()) pstmt.setString(++idx, searchVO.getSubject());
       if (null != searchVO.getOrigin()) pstmt.setString(++idx, searchVO.getOrigin());
       if (null != searchVO.getCreateDateFrom() && null != searchVO.getCreateDateTo()) { 
-        pstmt.setString(++idx, searchVO.getSubject());
-        pstmt.setString(++idx, searchVO.getSubject());
+        pstmt.setString(++idx, searchVO.getCreateDateFrom());
+        pstmt.setString(++idx, searchVO.getCreateDateTo());
       }
       rs = pstmt.executeQuery();
       while(rs.next()) {
@@ -84,7 +84,7 @@ public class RecentPopularPromotionDAO {
       pstmt = conn.prepareStatement(sql);
       pstmt.setString(1, searchVO.getCreateDate());
       rs = pstmt.executeQuery();
-      while(rs.next()) {
+      if (rs.next()) {
         vo = new RecentPopularPromotionVO();
         vo.setCreateDate(rs.getString("CREATE_DATE"));
         vo.setPartCode(rs.getInt("PART_CODE"));
@@ -127,19 +127,23 @@ public class RecentPopularPromotionDAO {
   public int update(RecentPopularPromotionVO vo) {
     StringBuffer sql = new StringBuffer("");
     int result = 0;
-    if (null == vo.getSubject() && null == vo.getOrigin()) return result;
+    if (null == vo.getSubject() && null == vo.getOrigin() && null == vo.getContent()) 
+      return result;
     try {
       sql.append("UPDATE RECENT_POPULAR_PROMOTION")
         .append(" SET");
+      if (0 < vo.getPartCode()) sql.append(" PART_CODE = ?,");
       if (null != vo.getSubject()) sql.append(" SUBJECT = ?,");
       if (null != vo.getOrigin()) sql.append(" ORIGIN = ?");
       if (sql.lastIndexOf(",") == sql.length()-1)
         sql.replace(sql.lastIndexOf(","), sql.length(), "");
       sql.append(" WHERE CREATE_DATE = ?");
       pstmt = conn.prepareStatement(sql.toString());
-      if (null != vo.getSubject()) pstmt.setString(1, vo.getSubject());
-      if (null != vo.getOrigin()) pstmt.setString(2, vo.getOrigin());
-      pstmt.setString(3, vo.getCreateDate());
+      int idx = 0;
+      if (0 < vo.getPartCode()) pstmt.setInt(++idx, vo.getPartCode());
+      if (null != vo.getSubject()) pstmt.setString(++idx, vo.getSubject());
+      if (null != vo.getOrigin()) pstmt.setString(++idx, vo.getOrigin());
+      pstmt.setString(++idx, vo.getCreateDate());
       result = pstmt.executeUpdate();
       if (0 < result) System.out.println("최신소식홍보물 수정 성공");
       else System.out.println("최신소식홍보물 수정 실패");

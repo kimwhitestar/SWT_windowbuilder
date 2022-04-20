@@ -26,7 +26,6 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
@@ -37,13 +36,11 @@ public class RecentPopularPromotionSubInput extends JFrame {
   private JTextField txtSubject;
   private JTextField txtOrigin;
   private JTextField txtAddImg;
-  private JTable tblPromotion;
   private RecentPopularPromotionServiceImpl implPromotion;
   private RecentPopularPromotionVO voPromotion;
   private InterestPartServiceImpl implInterest;
   @SuppressWarnings("rawtypes")
   private List listInterest;
-  private InterestPartVO voInterest;
   private String[] arrInterest;
   private String directoryImage = "I:/JavaGreen/Java/works/0329_mysqlConnect/src/WindowBuilder/images";
   
